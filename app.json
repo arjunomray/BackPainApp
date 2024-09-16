@@ -12,16 +12,33 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "your.app.bundle"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "your.app.package",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "config": {
+        "firebase": {
+          "apiKey": "AIzaSyDZ_55555555555555555555555555555555",
+          "authDomain": "bpa-123456.firebaseapp.com",
+          "projectId": "bpa-123456",
+          "storageBucket": "bpa-123456.appspot.com",
+          "messagingSenderId": "1234567890",
+          "appId": "1:1234567890:web:1234567890"
+        }
+      }
+    },
+    "scheme": "your.app.scheme",
+    "extra": {
+      "googleClientId": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
     }
   }
 }
