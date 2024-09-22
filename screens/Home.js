@@ -1,26 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
 import { useExercises } from '../ExerciseContext';
+import { colors, globalStyles } from '../GlobalStyles';
 
 function Home() {
-  const navigation = useNavigation();
   const { exercises, completeExercise } = useExercises();
   const incompleteExercises = exercises.filter(exercise => !exercise.completed);
-
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Profile')}
-          style={{ marginRight: 15 }}
-        >
-          <Ionicons name="person-circle-outline" size={24} color="black" />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
 
   const renderExercise = ({ item }) => (
     <View style={styles.exerciseItem}>
@@ -47,33 +32,26 @@ function Home() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
+  ...globalStyles,
   exerciseItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: colors.secondary,
   },
   exerciseName: {
     fontSize: 18,
+    color: colors.text,
   },
   completeButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     padding: 8,
     borderRadius: 5,
   },
   completeButtonText: {
-    color: 'white',
+    color: colors.background,
     fontSize: 14,
   },
 });

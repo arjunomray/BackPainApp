@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colors, globalStyles } from '../GlobalStyles';
 
 const onboardingScreens = [
     { id: 1, title: 'Welcome to Back Pain Relief', content: 'Get personalized exercises to manage your back pain.' },
@@ -40,16 +41,18 @@ function Onboarding() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>{screen.title}</Text>
-            <Text style={styles.content}>{screen.content}</Text>
-            <View style={styles.buttonContainer}>
-                <TouchableOpacity onPress={handleSkip} style={styles.button}>
-                    <Text style={styles.buttonText}>Skip</Text>
-                </TouchableOpacity>
+            <View style={styles.contentContainer}>
+                <Text style={styles.title}>{screen.title}</Text>
+                <Text style={styles.content}>{screen.content}</Text>
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity onPress={handleSkip} style={styles.button}>
+                        <Text style={styles.buttonText}>Skip</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity onPress={handleNext} style={styles.button}>
-                    <Text style={styles.buttonText}>{currentScreen === onboardingScreens.length - 1 ? 'Get Started' : 'Next'}</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity onPress={handleNext} style={styles.button}>
+                        <Text style={styles.buttonText}>{currentScreen === onboardingScreens.length - 1 ? 'Get Started' : 'Next'}</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );
@@ -57,21 +60,25 @@ function Onboarding() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        ...globalStyles.container,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+    },
+    contentContainer: {
+        width: '80%',
+        maxWidth: 300,
+        alignItems: 'center',
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
+        ...globalStyles.title,
         textAlign: 'center',
+        marginBottom: 20,
     },
     content: {
         fontSize: 16,
         textAlign: 'center',
         marginBottom: 40,
+        color: colors.text,
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -79,14 +86,11 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     button: {
-        backgroundColor: '#007AFF',
-        padding: 10,
-        width: '40%',
-        borderRadius: 5,
+        ...globalStyles.button,
+        width: '45%',
     },
     buttonText: {
-        color: 'white',
-        fontSize: 16,
+        ...globalStyles.buttonText,
     },
 });
 
