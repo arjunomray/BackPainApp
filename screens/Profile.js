@@ -37,30 +37,19 @@ function Profile({ navigation }) {
         fetchUserData();
     }, []);
 
-    const handleLogout = () => {
-        Alert.alert(
-            "Logout",
-            "Are you sure you want to logout?",
-            [
-                {
-                    text: "Cancel",
-                    style: "cancel"
-                },
-                {
-                    text: "OK",
-                    onPress: async () => {
-                        try {
-                            await signOut(auth);
-                            await AsyncStorage.removeItem('userToken');
-                            // The navigation will be handled automatically by the onAuthStateChanged listener in App.js
-                        } catch (error) {
-                            console.error('Error signing out: ', error);
-                            Alert.alert('Error', 'Failed to log out. Please try again.');
-                        }
-                    }
-                }
-            ]
-        );
+    const handleLogout = async () => {
+        try {
+            await auth.signOut();
+            await AsyncStorage.removeItem('userToken');
+            await AsyncStorage.removeItem('userName');
+            // Navigate to Auth screen or wherever appropriate
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
+
+    const updateProfile = async (updatedName) => {
+        await AsyncStorage.setItem('userName', updatedName);
     };
 
     if (isLoading) {

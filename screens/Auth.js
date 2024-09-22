@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -21,7 +21,6 @@ function Auth() {
             let userCredential;
             if (isSignUp) {
                 userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                // Create a new user document
                 await setDoc(doc(db, 'users', userCredential.user.uid), {
                     name,
                     email,
@@ -29,18 +28,14 @@ function Auth() {
                 });
             } else {
                 userCredential = await signInWithEmailAndPassword(auth, email, password);
-                // Check if user document exists, if not create it
-                const userDocRef = doc(db, 'users', userCredential.user.uid);
-                const userDoc = await getDoc(userDocRef);
-                if (!userDoc.exists()) {
-                    await setDoc(userDocRef, {
-                        name: userCredential.user.displayName || '',
-                        email: userCredential.user.email,
-                        completedExercises: []
-                    });
-                }
             }
-            // After successful authentication
+            
+            const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                await AsyncStorage.setItem('userName', userData.name || '');
+            }
+            
             await AsyncStorage.setItem('userToken', userCredential.user.uid);
             navigation.navigate('MainTabs');
         } catch (error) {
@@ -51,83 +46,160 @@ function Auth() {
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.contentContainer}>
-                <Text style={styles.title}>{isSignUp ? 'Sign Up' : 'Login'}</Text>
-                {isSignUp && (
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Name"
-                        value={name}
-                        onChangeText={setName}
-                        placeholderTextColor={colors.text}
-                    />
-                )}
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    placeholderTextColor={colors.text}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                    placeholderTextColor={colors.text}
-                />
-                <TouchableOpacity style={styles.button} onPress={handleAuth} disabled={isLoading}>
-                    {isLoading ? (
-                        <ActivityIndicator size="small" color={colors.background} />
-                    ) : (
-                        <Text style={styles.buttonText}>{isSignUp ? 'Sign Up' : 'Login'}</Text>
-                    )}
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)} disabled={isLoading}>
-                    <Text style={styles.switchText}>
-                        {isSignUp ? 'Already have an account? Login' : 'Don\'t have an account? Sign Up'}
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        </View>
+        <SafeAreaView style={styles.container}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={styles.keyboardAvoidingView}
+            >
+                <ScrollView
+                    contentContainerStyle={styles.scrollViewContent}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={styles.contentContainer}>
+                        <Text style={styles.title}>{isSignUp ? 'Create Account' : 'Welcome Back'}</Text>
+                        <Text style={styles.subtitle}>{isSignUp ? 'Sign up to get started' : 'Log in to your account'}</Text>
+
+                        {isSignUp && (
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Name</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter your name"
+                                    value={name}
+                                    onChangeText={setName}
+                                    placeholderTextColor={colors.placeholderText}
+                                />
+                            </View>
+                        )}
+
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Email</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter your email"
+                                value={email}
+                                onChangeText={setEmail}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                placeholderTextColor={colors.placeholderText}
+                            />
+                        </View>
+
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Password</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter your password"
+                                value={password}
+                                onChangeText={setPassword}
+                                secureTextEntry
+                                placeholderTextColor={colors.placeholderText}
+                            />
+                        </View>
+
+                        <TouchableOpacity style={styles.button} onPress={handleAuth} disabled={isLoading}>
+                            {isLoading ? (
+                                <ActivityIndicator size="small" color={colors.background} />
+                            ) : (
+                                <Text style={styles.buttonText}>{isSignUp ? 'Sign Up' : 'Log In'}</Text>
+                            )}
+                        </TouchableOpacity>
+
+                        <View style={styles.divider}>
+                            <View style={styles.dividerLine} />
+                            <Text style={styles.dividerText}>OR</Text>
+                            <View style={styles.dividerLine} />
+                        </View>
+
+                        <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)} disabled={isLoading}>
+                            <Text style={styles.switchText}>
+                                {isSignUp ? 'Already have an account? Log In' : 'Don\'t have an account? Sign Up'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        ...globalStyles.container,
+        flex: 1,
+        backgroundColor: colors.background,
+    },
+    keyboardAvoidingView: {
+        flex: 1,
+    },
+    scrollViewContent: {
+        flexGrow: 1,
         justifyContent: 'center',
-        alignItems: 'center',
+        padding: 20,
     },
     contentContainer: {
-        width: '80%',
-        maxWidth: 300,
-        alignItems: 'center',
+        width: '100%',
+        maxWidth: 400,
+        alignSelf: 'center',
     },
     title: {
-        ...globalStyles.title,
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: colors.text,
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    subtitle: {
+        fontSize: 16,
+        color: colors.secondaryText,
         marginBottom: 30,
+        textAlign: 'center',
+    },
+    inputContainer: {
+        marginBottom: 20,
+    },
+    inputLabel: {
+        fontSize: 14,
+        color: colors.text,
+        marginBottom: 5,
     },
     input: {
-        ...globalStyles.input,
-        marginBottom: 15,
+        backgroundColor: colors.inputBackground,
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 16,
+        color: colors.text,
     },
     button: {
-        ...globalStyles.button,
-        width: '100%',
+        backgroundColor: colors.primary,
+        borderRadius: 8,
+        padding: 15,
+        alignItems: 'center',
         marginTop: 10,
     },
     buttonText: {
-        ...globalStyles.buttonText,
+        color: colors.background,
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    divider: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 30,
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: colors.divider,
+    },
+    dividerText: {
+        marginHorizontal: 10,
+        color: colors.secondaryText,
+        fontSize: 14,
     },
     switchText: {
-        color: colors.secondary,
-        fontSize: 16,
-        marginTop: 20,
+        color: colors.primary,
+        fontSize: 14,
+        textAlign: 'center',
     },
 });
 

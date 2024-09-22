@@ -1,13 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useExercises } from '../components/ExerciseContext';
 import { colors, globalStyles } from '../GlobalStyles';
-import { useUser } from '../components/UserContext'; // You'll need to create this context
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 function Home() {
   const { exercises, completeExercise } = useExercises();
-  const { userData } = useUser();
+  const [userName, setUserName] = useState('Guest');
   const incompleteExercises = exercises.filter(exercise => !exercise.completed);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const storedName = await AsyncStorage.getItem('userName');
+
+        if (storedName) {
+          setUserName(storedName);
+        } else {
+          const user = auth.currentUser;
+          if (user) {
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              setUserName(userData.name || 'Guest');
+              await AsyncStorage.setItem('userName', userData.name || '');
+            }
+          }
+        }
+      } catch (error) {
+        // Consider how you want to handle errors in production
+        // You might want to set a default name or show an error message
+        setUserName('Guest');
+      }
+    };
+
+    fetchUserName();
+  }, []);
 
   const renderExercise = ({ item }) => (
     <View style={styles.exerciseItem}>
@@ -23,7 +53,7 @@ function Home() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.greeting}>Hello, {userData?.name || 'Guest'}!</Text>
+      <Text style={styles.greeting}>Hello, {userName}!</Text>
       <Text style={styles.title}>Exercises to Do</Text>
       <FlatList
         data={incompleteExercises}
