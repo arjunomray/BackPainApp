@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { useExercises } from '../ExerciseContext';
+import { useExercises } from '../components/ExerciseContext';
 import { colors, globalStyles } from '../GlobalStyles';
+import { useUser } from '../components/UserContext'; // You'll need to create this context
 
 function Home() {
   const { exercises, completeExercise } = useExercises();
+  const { userData } = useUser();
   const incompleteExercises = exercises.filter(exercise => !exercise.completed);
 
   const renderExercise = ({ item }) => (
@@ -21,11 +23,15 @@ function Home() {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.greeting}>Hello, {userData?.name || 'Guest'}!</Text>
       <Text style={styles.title}>Exercises to Do</Text>
       <FlatList
         data={incompleteExercises}
         renderItem={renderExercise}
         keyExtractor={(item) => item.id}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No exercises left to complete. Great job!</Text>
+        }
       />
     </View>
   );
@@ -53,6 +59,18 @@ const styles = StyleSheet.create({
   completeButtonText: {
     color: colors.background,
     fontSize: 14,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: colors.text,
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  greeting: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 20,
   },
 });
 

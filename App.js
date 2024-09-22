@@ -4,16 +4,18 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
-import { auth } from './firebase';
+import { auth, db } from './firebase';
 import { colors } from './GlobalStyles';
-import AuthLoadingScreen from './components/AuthLoading';
+import LoadingScreen from './components/LoadingScreen';
 import Onboarding from './screens/Onboarding';
 import Auth from './screens/Auth';
 import Home from './screens/Home';
 import History from './screens/History';
 import Profile from './screens/Profile';
-import { ExerciseProvider } from './ExerciseContext';
+import { ExerciseProvider } from './components/ExerciseContext';
+import { UserProvider } from './components/UserContext';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -62,30 +64,17 @@ function MainTabs() {
 function RootNavigator() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    const bootstrapAsync = async () => {
-      let userToken;
-      try {
-        userToken = await AsyncStorage.getItem('userToken');
-      } catch (e) {
-        // Restoring token failed
-      }
-
-      if (userToken) {
-        setUser({ uid: userToken });
-      }
-      setIsLoading(false);
-    };
-
-    bootstrapAsync();
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
         await AsyncStorage.setItem('userToken', user.uid);
+        await fetchUserData(user.uid);
       } else {
         setUser(null);
+        setUserData(null);
         await AsyncStorage.removeItem('userToken');
       }
       setIsLoading(false);
@@ -94,8 +83,22 @@ function RootNavigator() {
     return () => unsubscribe();
   }, []);
 
+  const fetchUserData = async (userId) => {
+    try {
+      const userDocRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        setUserData(userDoc.data());
+      } else {
+        console.log('No user data found');
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
   if (isLoading) {
-    return <AuthLoadingScreen />;
+    return <LoadingScreen />;
   }
 
   return (
@@ -121,9 +124,11 @@ export default function App() {
         },
       }}
     >
-      <ExerciseProvider>
-        <RootNavigator />
-      </ExerciseProvider>
+      <UserProvider>
+        <ExerciseProvider>
+          <RootNavigator />
+        </ExerciseProvider>
+      </UserProvider>
     </NavigationContainer>
   );
 }

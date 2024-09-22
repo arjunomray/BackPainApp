@@ -1,16 +1,30 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { useExercises } from '../ExerciseContext';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { useExercises } from '../components/ExerciseContext';
 import { colors, globalStyles } from '../GlobalStyles';
+import { Ionicons } from '@expo/vector-icons';
 
 function History() {
-  const { exercises } = useExercises();
+  const { exercises, fetchCompletedExercises, removeCompletedExercise } = useExercises();
   const completedExercises = exercises.filter(exercise => exercise.completed);
+
+  useEffect(() => {
+    fetchCompletedExercises();
+  }, []);
+
+  const handleRemoveExercise = (exerciseId) => {
+    removeCompletedExercise(exerciseId);
+  };
 
   const renderExercise = ({ item }) => (
     <View style={styles.exerciseItem}>
       <Text style={styles.exerciseName}>{item.name}</Text>
-      <Text style={styles.completedText}>Completed</Text>
+      <View style={styles.rightContainer}>
+        <Text style={styles.completedText}>Completed</Text>
+        <TouchableOpacity onPress={() => handleRemoveExercise(item.id)} style={styles.removeButton}>
+          <Ionicons name="close-circle" size={24} color={colors.accent} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -45,10 +59,19 @@ const styles = StyleSheet.create({
   exerciseName: {
     fontSize: 18,
     color: colors.text,
+    flex: 1,
+  },
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   completedText: {
     color: colors.primary,
     fontSize: 14,
+    marginRight: 10,
+  },
+  removeButton: {
+    padding: 5,
   },
   summaryText: {
     fontSize: 16,
