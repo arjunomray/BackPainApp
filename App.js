@@ -70,12 +70,10 @@ function RootNavigator() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
-        await AsyncStorage.setItem('userToken', user.uid);
         await fetchUserData(user.uid);
       } else {
         setUser(null);
         setUserData(null);
-        await AsyncStorage.removeItem('userToken');
       }
       setIsLoading(false);
     });

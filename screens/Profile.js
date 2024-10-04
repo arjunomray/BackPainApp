@@ -39,10 +39,9 @@ function Profile({ navigation }) {
 
     const handleLogout = async () => {
         try {
-            await auth.signOut();
-            await AsyncStorage.removeItem('userToken');
+            await signOut(auth);
             await AsyncStorage.removeItem('userName');
-            // Navigate to Auth screen or wherever appropriate
+            navigation.navigate('Auth');
         } catch (error) {
             console.error("Logout error:", error);
         }
